@@ -101,7 +101,7 @@ func (t *TemplateKit) applyModelToDocumentXml(model *TemplateModel, resultFile i
 			curlyBracketCount++
 
 			if curlyBracketCount > 2 {
-				popBytes := t.popFirstBracket(&originalStringBuilder)
+				popBytes := t.popFirstBracketTexts(&originalStringBuilder)
 				_, err = resultFile.Write(popBytes)
 				if err != nil {
 					return err
@@ -119,16 +119,19 @@ func (t *TemplateKit) applyModelToDocumentXml(model *TemplateModel, resultFile i
 
 		if b == '}' && curlyBracketCount > 0 {
 			curlyBracketCount--
+
 			err = originalStringBuilder.WriteByte(b)
 			if err != nil {
 				return err
 			}
+
 			if curlyBracketCount == 0 {
 				if len(currentToken.Value) > 0 {
 					resultFile.Write(currentToken.Value)
 				} else {
 					resultFile.Write([]byte(originalStringBuilder.String()))
 				}
+
 				originalStringBuilder.Reset()
 				currentToken = rootToken
 			}
@@ -153,11 +156,12 @@ func (t *TemplateKit) applyModelToDocumentXml(model *TemplateModel, resultFile i
 	return nil
 }
 
-func (t *TemplateKit) popFirstBracket(originalStringBuilder *strings.Builder) []byte {
-	popStringBuilder := strings.Builder{}
+func (t *TemplateKit) popFirstBracketTexts(originalStringBuilder *strings.Builder) []byte {
 	currentBytes := originalStringBuilder.String()
-	bracketCount := 0
 	originalStringBuilder.Reset()
+	popStringBuilder := strings.Builder{}
+	bracketCount := 0
+
 	for _, char := range currentBytes {
 		if char == '{' {
 			bracketCount++
@@ -169,6 +173,7 @@ func (t *TemplateKit) popFirstBracket(originalStringBuilder *strings.Builder) []
 			originalStringBuilder.WriteByte(byte(char))
 		}
 	}
+
 	return []byte(popStringBuilder.String())
 }
 
