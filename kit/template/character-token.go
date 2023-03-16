@@ -7,7 +7,7 @@ import (
 
 type CharacterToken struct {
 	NextCharacterTokens map[byte]*CharacterToken
-	Value          []byte
+	Value               []byte
 }
 
 func NewCharacterToken() *CharacterToken {

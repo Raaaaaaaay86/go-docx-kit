@@ -9,7 +9,7 @@ type DocxFile struct {
 	DocPropsDirectory DocxDocPropsDirectory
 	WordDirectory     DocxWordDirectory
 	ContentTypesXml   DocxContentTypesXml
-	Files			 []*zip.File
+	Files             []*zip.File
 }
 
 func newDocxFile() *DocxFile {
