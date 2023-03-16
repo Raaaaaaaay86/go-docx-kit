@@ -52,13 +52,7 @@ func (t *TemplateKit) Generate(targetFile *os.File) (*os.File, error) {
 			continue
 		}
 
-		reader, err := file.Open()
-		if err != nil {
-			return targetFile, err
-		}
-		defer reader.Close()
-
-		_, err = io.Copy(fileToZip, reader)
+		err = writeZipToWriter(file, fileToZip)
 		if err != nil {
 			return targetFile, err
 		}
@@ -176,4 +170,19 @@ func (t *TemplateKit) popFirstBracket(originalStringBuilder *strings.Builder) []
 		}
 	}
 	return []byte(popStringBuilder.String())
+}
+
+func writeZipToWriter(zip *zip.File, writer io.Writer) error {
+	reader, err := zip.Open()
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+
+	_, err = io.Copy(writer, reader)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
