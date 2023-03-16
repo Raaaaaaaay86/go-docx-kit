@@ -34,6 +34,8 @@ func ReadDocxFile(filePath string) (*DocxFile, error) {
 			docx.WordDirectory.EndNotesXml = file
 		case "word/fontTable.xml":
 			docx.WordDirectory.FontTableXml = file
+		case "word/footnotes.xml":
+			docx.WordDirectory.FootNotesXml = file
 		case "word/numbering.xml":
 			docx.WordDirectory.NumberingXml = file
 		case "word/settings.xml":
