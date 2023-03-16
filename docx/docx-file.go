@@ -11,7 +11,7 @@ type DocxFile struct {
 	ContentTypesXml   DocxContentTypesXml
 }
 
-func NewDocxFile() *DocxFile {
+func newDocxFile() *DocxFile {
 	return new(DocxFile)
 }
 
@@ -22,7 +22,7 @@ func ReadDocxFile(filePath string) (*DocxFile, error) {
 	}
 	defer zipReader.Close()
 
-	docx := NewDocxFile()
+	docx := newDocxFile()
 
 	for _, file := range zipReader.File {
 		switch file.Name {
