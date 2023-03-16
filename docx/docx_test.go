@@ -1,4 +1,4 @@
-package godocxkit
+package docx
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestReadDocxFile(t *testing.T) {
-	docx, err := ReadDocxFile("template.docx")
+	docx, err := ReadDocxFile("../template.docx")
 
 	assert.NoError(t, err)
 	assert.Equal(t, "word/document.xml", docx.WordDirectory.DocumentXml.Name)
