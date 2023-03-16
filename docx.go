@@ -12,6 +12,8 @@ type DocxFile struct {
 type DocxContentTypesXml *zip.File
 
 type DocxWordDirectory struct {
+	RelsDirectory DocxWordRelsDirectory
+	ThemeDirectory DocxWordThemeDirectory
 	DocumentXml *zip.File
 	EndNotesXml *zip.File
 	FontTableXml *zip.File
