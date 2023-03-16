@@ -41,3 +41,7 @@ type DocxDocPropsDirectory struct {
 type DocxRelsDirectory struct {
 	Rels *zip.File
 }
+
+func ReadDocxFile(filePath string) (*DocxFile, error) {
+	panic("unimplemented")
+}
