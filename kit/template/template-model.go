@@ -4,8 +4,10 @@ type TemplateModel struct {
 	hashMap map[string]string
 }
 
-func NewTemplateModel() *TemplateModel {
-	return new(TemplateModel)
+func NewTemplateModel() TemplateModel {
+	return TemplateModel{
+		hashMap: make(map[string]string),
+	}
 }
 
 func (t *TemplateModel) Put(key string, value string) {
