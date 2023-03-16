@@ -9,6 +9,7 @@ type DocxFile struct {
 	DocPropsDirectory DocxDocPropsDirectory
 	WordDirectory     DocxWordDirectory
 	ContentTypesXml   DocxContentTypesXml
+	Files			 []*zip.File
 }
 
 func newDocxFile() *DocxFile {
@@ -25,6 +26,7 @@ func ReadDocxFile(filePath string) (*DocxFile, error) {
 	docx := newDocxFile()
 
 	for _, file := range zipReader.File {
+		docx.Files = append(docx.Files, file)
 		switch file.Name {
 		case "word/document.xml":
 			docx.WordDirectory.DocumentXml = file
