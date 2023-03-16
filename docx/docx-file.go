@@ -21,7 +21,6 @@ func ReadDocxFile(filePath string) (*DocxFile, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer zipReader.Close()
 
 	docx := newDocxFile()
 
