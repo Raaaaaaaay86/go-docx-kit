@@ -4,7 +4,7 @@ import "archive/zip"
 
 type DocxFile struct {
 	RelsDirectory DocxRelsDirectory 
-	PropsDirectory DocxPropsDirectory
+	DocPropsDirectory DocxDocPropsDirectory
 	WordDirectory DocxWordDirectory
 	ContentTypesXml DocxContentTypesXml
 }
@@ -30,7 +30,7 @@ type DocxWordThemeDirectory struct {
 	Theme1Xml *zip.File
 }
 
-type DocxPropsDirectory struct {
+type DocxDocPropsDirectory struct {
 	AppXml *zip.File
 	CoreXml *zip.File
 	CustomXml *zip.File
