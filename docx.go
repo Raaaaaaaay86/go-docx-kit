@@ -1,26 +1,28 @@
 package godocxkit
 
-import "archive/zip"
+import (
+	"archive/zip"
+)
 
 type DocxFile struct {
-	RelsDirectory DocxRelsDirectory 
+	RelsDirectory     DocxRelsDirectory
 	DocPropsDirectory DocxDocPropsDirectory
-	WordDirectory DocxWordDirectory
-	ContentTypesXml DocxContentTypesXml
+	WordDirectory     DocxWordDirectory
+	ContentTypesXml   DocxContentTypesXml
 }
 
 type DocxContentTypesXml *zip.File
 
 type DocxWordDirectory struct {
-	RelsDirectory DocxWordRelsDirectory
+	RelsDirectory  DocxWordRelsDirectory
 	ThemeDirectory DocxWordThemeDirectory
-	DocumentXml *zip.File
-	EndNotesXml *zip.File
-	FontTableXml *zip.File
-	FootNotesXml *zip.File
-	NumberingXml *zip.File
-	SettingsXml *zip.File
-	StylesXml *zip.File
+	DocumentXml    *zip.File
+	EndNotesXml    *zip.File
+	FontTableXml   *zip.File
+	FootNotesXml   *zip.File
+	NumberingXml   *zip.File
+	SettingsXml    *zip.File
+	StylesXml      *zip.File
 	WebSettingsXml *zip.File
 }
 
@@ -33,8 +35,8 @@ type DocxWordThemeDirectory struct {
 }
 
 type DocxDocPropsDirectory struct {
-	AppXml *zip.File
-	CoreXml *zip.File
+	AppXml    *zip.File
+	CoreXml   *zip.File
 	CustomXml *zip.File
 }
 
