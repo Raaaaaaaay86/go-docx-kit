@@ -3,6 +3,8 @@ package template
 import (
 	"go-docx-kit/docx"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTemplateGeneration(t *testing.T) {
@@ -25,17 +27,11 @@ func TestTemplateGeneration(t *testing.T) {
 	dataModel.Put("reasonOfNotRetainingSample", " ")
 
 	docxTemplate, err := docx.ReadDocxFile("../../template.docx")
-	if err != nil {
-		panic(err)
-	}
+	assert.NoError(t, err)
 
-	kit := NewTemplateKit()
-	kit.SetTemplateDocx(docxTemplate)
-	kit.SetTemplateModel(dataModel)
-	err = kit.Render()
-	if err != nil {
-		panic(err)
-	}
+	err = NewTemplateKit().Render(docxTemplate, dataModel)
+	assert.NoError(t, err)
 
-
+	_, err = docxTemplate.ToFile("../../output.docx")
+	assert.NoError(t, err)
 }
