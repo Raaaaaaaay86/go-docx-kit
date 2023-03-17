@@ -2,6 +2,9 @@ package docx
 
 import (
 	"archive/zip"
+	"bytes"
+	"io"
+	"os"
 )
 
 type DocxFile struct {
@@ -67,4 +70,26 @@ func ReadDocxFile(filePath string) (*DocxFile, error) {
 	}
 
 	return docx, nil
+}
+
+func (d *DocxFile) ToFile(path string) (*os.File, error) {
+	file, err := os.Create(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	zipWriter := zip.NewWriter(file)
+	defer zipWriter.Close()
+
+	for _, docxZipFile := range d.Files {
+		zipFileWriter, err := zipWriter.Create(docxZipFile.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		io.Copy(zipFileWriter, bytes.NewReader(docxZipFile.Data))
+	}
+
+	return file, nil
 }
