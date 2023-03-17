@@ -1,4 +1,4 @@
-module go-docx-kit
+module github.com/raaaaaaaay86/go-docx-kit
 
 go 1.19
 

@@ -1,7 +1,7 @@
 package template
 
 import (
-	"go-docx-kit/docx"
+	"github.com/raaaaaaaay86/go-docx-kit/docx"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

@@ -3,8 +3,9 @@ package template
 import (
 	"bytes"
 	"errors"
-	"go-docx-kit/docx"
 	"strings"
+
+	"github.com/raaaaaaaay86/go-docx-kit/docx"
 )
 
 type TemplateKit struct {
