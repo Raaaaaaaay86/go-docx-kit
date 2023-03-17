@@ -39,7 +39,7 @@ func TestTemplateGeneration(t *testing.T) {
 	kit := NewTemplateKit()
 	kit.SetTemplateDocx(templateFile)
 	kit.SetTemplateModel(dataModel)
-	_, err = kit.Generate(resultFile)
+	_, err = kit.Write(resultFile)
 	if err != nil {
 		panic(err)
 	}

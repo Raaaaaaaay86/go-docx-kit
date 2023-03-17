@@ -27,13 +27,14 @@ func (t *TemplateKit) SetTemplateModel(model TemplateModel) {
 	t.model = model
 }
 
-func (t *TemplateKit) Generate(targetFile *os.File) (*os.File, error) {
+func (t *TemplateKit) Write(targetFile *os.File) (int, error) {
 	if t.sourceDocx == nil {
-		return targetFile, errors.New("source docx file is not set")
+		return 0, errors.New("source docx file is not set")
 	}
 	if targetFile == nil {
-		return targetFile, errors.New("target file can not be nil")
+		return 0, errors.New("target file can not be nil")
 	}
+	totalWritten := 0
 
 	zipWriter := zip.NewWriter(targetFile)
 	defer zipWriter.Close()
@@ -41,30 +42,34 @@ func (t *TemplateKit) Generate(targetFile *os.File) (*os.File, error) {
 	for _, file := range t.sourceDocx.Files {
 		fileToZip, err := zipWriter.Create(file.Name)
 		if err != nil {
-			return targetFile, err
+			return totalWritten, err
 		}
 
 		if file.Name == "word/document.xml" {
-			err := t.applyModelToDocumentXml(&t.model, fileToZip)
+			written, err := t.applyModelToDocumentXml(&t.model, fileToZip)
 			if err != nil {
-				return targetFile, err
+				return totalWritten, err
 			}
+			totalWritten += written
 			continue
 		}
 
-		err = writeZipToWriter(file, fileToZip)
+		written, err := writeZipToWriter(file, fileToZip)
 		if err != nil {
-			return targetFile, err
+			return totalWritten, err
 		}
+		totalWritten += written
 	}
 
-	return targetFile, nil
+	return totalWritten, nil
 }
 
-func (t *TemplateKit) applyModelToDocumentXml(model *TemplateModel, resultFile io.Writer) error {
+func (t *TemplateKit) applyModelToDocumentXml(model *TemplateModel, resultFile io.Writer) (int, error) {
+	totalWritten := 0
+
 	documentReader, err := t.sourceDocx.WordDirectory.DocumentXml.Open()
 	if err != nil {
-		return err
+		return totalWritten, err
 	}
 	defer documentReader.Close()
 
@@ -80,7 +85,7 @@ func (t *TemplateKit) applyModelToDocumentXml(model *TemplateModel, resultFile i
 			if err.Error() == "EOF" {
 				break
 			}
-			return err
+			return totalWritten, err
 		}
 
 		if b == '<' {
@@ -102,17 +107,20 @@ func (t *TemplateKit) applyModelToDocumentXml(model *TemplateModel, resultFile i
 
 			if curlyBracketCount > 2 {
 				popBytes := t.popFirstBracketTexts(&originalStringBuilder)
-				_, err = resultFile.Write(popBytes)
+
+				written, err := resultFile.Write(popBytes)
 				if err != nil {
-					return err
+					return totalWritten, err
 				}
+				totalWritten += written
+
 				curlyBracketCount--
 				continue
 			}
 
 			err = originalStringBuilder.WriteByte(b)
 			if err != nil {
-				return err
+					return totalWritten, err
 			}
 			continue
 		}
@@ -122,14 +130,22 @@ func (t *TemplateKit) applyModelToDocumentXml(model *TemplateModel, resultFile i
 
 			err = originalStringBuilder.WriteByte(b)
 			if err != nil {
-				return err
+				return totalWritten, err
 			}
 
 			if curlyBracketCount == 0 {
 				if len(currentToken.Value) > 0 {
-					resultFile.Write(currentToken.Value)
+					written, err := resultFile.Write(currentToken.Value)
+					if err != nil {
+						return totalWritten, err
+					}
+					totalWritten += written
 				} else {
-					resultFile.Write([]byte(originalStringBuilder.String()))
+					written, err := resultFile.Write([]byte(originalStringBuilder.String()))
+					if err != nil {
+						return totalWritten, err
+					}
+					totalWritten += written
 				}
 
 				originalStringBuilder.Reset()
@@ -141,19 +157,21 @@ func (t *TemplateKit) applyModelToDocumentXml(model *TemplateModel, resultFile i
 		if curlyBracketCount > 0 {
 			err = originalStringBuilder.WriteByte(b)
 			if err != nil {
-				return err
+				return totalWritten, err
 			}
 			continue
 		}
 
-		_, err = resultFile.Write([]byte{b})
+		written, err := resultFile.Write([]byte{b})
 		if err != nil {
-			return err
+			return totalWritten, err
 		}
+		totalWritten += written
+
 		currentToken = rootToken
 	}
 
-	return nil
+	return totalWritten, nil
 }
 
 func (t *TemplateKit) popFirstBracketTexts(originalStringBuilder *strings.Builder) []byte {
@@ -177,17 +195,17 @@ func (t *TemplateKit) popFirstBracketTexts(originalStringBuilder *strings.Builde
 	return []byte(popStringBuilder.String())
 }
 
-func writeZipToWriter(zip *zip.File, writer io.Writer) error {
+func writeZipToWriter(zip *zip.File, writer io.Writer) (int, error) {
 	reader, err := zip.Open()
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer reader.Close()
 
-	_, err = io.Copy(writer, reader)
+	written, err := io.Copy(writer, reader)
 	if err != nil {
-		return err
+		return int(written), err
 	}
 
-	return nil
+	return int(written), nil
 }
