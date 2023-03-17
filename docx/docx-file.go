@@ -9,7 +9,7 @@ type DocxFile struct {
 	DocPropsDirectory DocxDocPropsDirectory
 	WordDirectory     DocxWordDirectory
 	ContentTypesXml   DocxContentTypesXml
-	Files             []*zip.File
+	Files             []*DocxZipFile
 }
 
 func newDocxFile() *DocxFile {
@@ -25,38 +25,44 @@ func ReadDocxFile(filePath string) (*DocxFile, error) {
 	docx := newDocxFile()
 
 	for _, file := range zipReader.File {
-		docx.Files = append(docx.Files, file)
+		docxZipFile, err := NewDocxZipFile(file)
+		if err != nil {
+			return nil, err
+		}
+
+		docx.Files = append(docx.Files, docxZipFile)
+
 		switch file.Name {
 		case "word/document.xml":
-			docx.WordDirectory.DocumentXml = file
+			docx.WordDirectory.DocumentXml = docxZipFile
 		case "word/endnotes.xml":
-			docx.WordDirectory.EndNotesXml = file
+			docx.WordDirectory.EndNotesXml = docxZipFile
 		case "word/fontTable.xml":
-			docx.WordDirectory.FontTableXml = file
+			docx.WordDirectory.FontTableXml = docxZipFile
 		case "word/footnotes.xml":
-			docx.WordDirectory.FootNotesXml = file
+			docx.WordDirectory.FootNotesXml = docxZipFile
 		case "word/numbering.xml":
-			docx.WordDirectory.NumberingXml = file
+			docx.WordDirectory.NumberingXml = docxZipFile
 		case "word/settings.xml":
-			docx.WordDirectory.SettingsXml = file
+			docx.WordDirectory.SettingsXml = docxZipFile
 		case "word/styles.xml":
-			docx.WordDirectory.StylesXml = file
+			docx.WordDirectory.StylesXml = docxZipFile
 		case "word/webSettings.xml":
-			docx.WordDirectory.WebSettingsXml = file
+			docx.WordDirectory.WebSettingsXml = docxZipFile
 		case "word/_rels/document.xml.rels":
-			docx.WordDirectory.RelsDirectory.DocumentXmlRels = file
+			docx.WordDirectory.RelsDirectory.DocumentXmlRels = docxZipFile
 		case "word/theme/theme1.xml":
-			docx.WordDirectory.ThemeDirectory.Theme1Xml = file
+			docx.WordDirectory.ThemeDirectory.Theme1Xml = docxZipFile
 		case "docProps/app.xml":
-			docx.DocPropsDirectory.AppXml = file
+			docx.DocPropsDirectory.AppXml = docxZipFile
 		case "docProps/core.xml":
-			docx.DocPropsDirectory.CoreXml = file
+			docx.DocPropsDirectory.CoreXml = docxZipFile
 		case "docProps/custom.xml":
-			docx.DocPropsDirectory.CustomXml = file
+			docx.DocPropsDirectory.CustomXml = docxZipFile
 		case "_rels/.rels":
-			docx.RelsDirectory.Rels = file
+			docx.RelsDirectory.Rels = docxZipFile
 		case "[Content_Types].xml":
-			docx.ContentTypesXml = file
+			docx.ContentTypesXml = docxZipFile
 		}
 	}
 

@@ -1,5 +1,3 @@
 package docx
 
-import "archive/zip"
-
-type DocxContentTypesXml *zip.File
+type DocxContentTypesXml *DocxZipFile
