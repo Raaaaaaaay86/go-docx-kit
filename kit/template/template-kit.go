@@ -19,7 +19,7 @@ func NewTemplateKit() *TemplateKit {
 	return new(TemplateKit)
 }
 
-func (t *TemplateKit) SetTargetDocx(sourceDocx *docx.DocxFile) {
+func (t *TemplateKit) SetTemplateDocx(sourceDocx *docx.DocxFile) {
 	t.sourceDocx = sourceDocx
 }
 

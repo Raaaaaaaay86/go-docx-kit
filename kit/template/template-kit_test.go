@@ -37,7 +37,7 @@ func TestTemplateGeneration(t *testing.T) {
 	defer resultFile.Close()
 
 	kit := NewTemplateKit()
-	kit.SetTargetDocx(templateFile)
+	kit.SetTemplateDocx(templateFile)
 	kit.SetTemplateModel(dataModel)
 	_, err = kit.Generate(resultFile)
 	if err != nil {
