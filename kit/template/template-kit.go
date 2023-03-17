@@ -8,31 +8,21 @@ import (
 )
 
 type TemplateKit struct {
-	sourceDocx *docx.DocxFile
-	model      TemplateModel
 }
 
 func NewTemplateKit() *TemplateKit {
 	return new(TemplateKit)
 }
 
-func (t *TemplateKit) SetTemplateDocx(sourceDocx *docx.DocxFile) {
-	t.sourceDocx = sourceDocx
-}
-
-func (t *TemplateKit) SetTemplateModel(model TemplateModel) {
-	t.model = model
-}
-
-func (t *TemplateKit) Render() error {
-	if t.sourceDocx == nil {
-		return errors.New("source docx file is not set")
+func (t *TemplateKit) Render(templateDocx *docx.DocxFile, model TemplateModel) error {
+	if templateDocx == nil {
+		return errors.New("template docx file cannot be nil")
 	}
 
 	buffer := bytes.NewBuffer(nil)
-	reader := bytes.NewReader(t.sourceDocx.WordDirectory.DocumentXml.Data)
+	reader := bytes.NewReader(templateDocx.WordDirectory.DocumentXml.Data)
 	originalStringBuilder := strings.Builder{}
-	rootToken := t.model.GetTrie()
+	rootToken := model.GetTrie()
 	currentToken := rootToken
 	curlyBracketCount := 0
 	isCheckingTree := false
@@ -122,7 +112,7 @@ func (t *TemplateKit) Render() error {
 		currentToken = rootToken
 	}
 
-	t.sourceDocx.WordDirectory.DocumentXml.Data = buffer.Bytes()
+	templateDocx.WordDirectory.DocumentXml.Data = buffer.Bytes()
 
 	return nil
 }
