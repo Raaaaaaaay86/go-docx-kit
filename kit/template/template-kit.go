@@ -1,12 +1,9 @@
 package template
 
 import (
-	"archive/zip"
-	"bufio"
+	"bytes"
 	"errors"
 	"go-docx-kit/docx"
-	"io"
-	"os"
 	"strings"
 )
 
@@ -27,72 +24,30 @@ func (t *TemplateKit) SetTemplateModel(model TemplateModel) {
 	t.model = model
 }
 
-func (t *TemplateKit) Write(targetFile *os.File) (int, error) {
+func (t *TemplateKit) Render() error {
 	if t.sourceDocx == nil {
-		return 0, errors.New("source docx file is not set")
-	}
-	if targetFile == nil {
-		return 0, errors.New("target file can not be nil")
-	}
-	totalWritten := 0
-
-	zipWriter := zip.NewWriter(targetFile)
-	defer zipWriter.Close()
-
-	for _, file := range t.sourceDocx.Files {
-		fileToZip, err := zipWriter.Create(file.Name)
-		if err != nil {
-			return totalWritten, err
-		}
-
-		if file.Name == "word/document.xml" {
-			written, err := t.applyModelToDocumentXml(&t.model, fileToZip)
-			if err != nil {
-				return totalWritten, err
-			}
-			totalWritten += written
-			continue
-		}
-
-		written, err := writeZipToWriter(file, fileToZip)
-		if err != nil {
-			return totalWritten, err
-		}
-		totalWritten += written
+		return errors.New("source docx file is not set")
 	}
 
-	return totalWritten, nil
-}
-
-func (t *TemplateKit) applyModelToDocumentXml(model *TemplateModel, resultFile io.Writer) (int, error) {
-	totalWritten := 0
-
-	documentReader, err := t.sourceDocx.WordDirectory.DocumentXml.Open()
-	if err != nil {
-		return totalWritten, err
-	}
-	defer documentReader.Close()
-
-	reader := bufio.NewReader(documentReader)
-	curlyBracketCount := 0
+	buffer := bytes.NewBuffer(nil)
+	reader := bytes.NewReader(t.sourceDocx.WordDirectory.DocumentXml.Data)
 	originalStringBuilder := strings.Builder{}
-	isCheckingTree := false
-	rootToken := model.GetTrie()
+	rootToken := t.model.GetTrie()
 	currentToken := rootToken
+	curlyBracketCount := 0
+	isCheckingTree := false
 	for {
 		b, err := reader.ReadByte()
 		if err != nil {
 			if err.Error() == "EOF" {
 				break
 			}
-			return totalWritten, err
+			return err
 		}
 
 		if b == '<' {
 			isCheckingTree = false
-		}
-
-		if b == '>' {
+		} else if b == '>' {
 			isCheckingTree = true
 		}
 
@@ -108,11 +63,10 @@ func (t *TemplateKit) applyModelToDocumentXml(model *TemplateModel, resultFile i
 			if curlyBracketCount > 2 {
 				popBytes := t.popFirstBracketTexts(&originalStringBuilder)
 
-				written, err := resultFile.Write(popBytes)
+				_, err := buffer.Write(popBytes)
 				if err != nil {
-					return totalWritten, err
+					return err
 				}
-				totalWritten += written
 
 				curlyBracketCount--
 				continue
@@ -120,7 +74,7 @@ func (t *TemplateKit) applyModelToDocumentXml(model *TemplateModel, resultFile i
 
 			err = originalStringBuilder.WriteByte(b)
 			if err != nil {
-					return totalWritten, err
+					return err
 			}
 			continue
 		}
@@ -130,22 +84,20 @@ func (t *TemplateKit) applyModelToDocumentXml(model *TemplateModel, resultFile i
 
 			err = originalStringBuilder.WriteByte(b)
 			if err != nil {
-				return totalWritten, err
+				return err
 			}
 
 			if curlyBracketCount == 0 {
 				if len(currentToken.Value) > 0 {
-					written, err := resultFile.Write(currentToken.Value)
+					_, err := buffer.Write(currentToken.Value)
 					if err != nil {
-						return totalWritten, err
+						return err
 					}
-					totalWritten += written
 				} else {
-					written, err := resultFile.Write([]byte(originalStringBuilder.String()))
+					_, err := buffer.Write([]byte(originalStringBuilder.String()))
 					if err != nil {
-						return totalWritten, err
+						return err
 					}
-					totalWritten += written
 				}
 
 				originalStringBuilder.Reset()
@@ -157,21 +109,22 @@ func (t *TemplateKit) applyModelToDocumentXml(model *TemplateModel, resultFile i
 		if curlyBracketCount > 0 {
 			err = originalStringBuilder.WriteByte(b)
 			if err != nil {
-				return totalWritten, err
+				return err
 			}
 			continue
 		}
 
-		written, err := resultFile.Write([]byte{b})
+		_, err = buffer.Write([]byte{b})
 		if err != nil {
-			return totalWritten, err
+			return err
 		}
-		totalWritten += written
 
 		currentToken = rootToken
 	}
 
-	return totalWritten, nil
+	t.sourceDocx.WordDirectory.DocumentXml.Data = buffer.Bytes()
+
+	return nil
 }
 
 func (t *TemplateKit) popFirstBracketTexts(originalStringBuilder *strings.Builder) []byte {
@@ -193,19 +146,4 @@ func (t *TemplateKit) popFirstBracketTexts(originalStringBuilder *strings.Builde
 	}
 
 	return []byte(popStringBuilder.String())
-}
-
-func writeZipToWriter(zip *zip.File, writer io.Writer) (int, error) {
-	reader, err := zip.Open()
-	if err != nil {
-		return 0, err
-	}
-	defer reader.Close()
-
-	written, err := io.Copy(writer, reader)
-	if err != nil {
-		return int(written), err
-	}
-
-	return int(written), nil
 }

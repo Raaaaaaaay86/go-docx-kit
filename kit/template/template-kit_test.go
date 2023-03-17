@@ -2,7 +2,6 @@ package template
 
 import (
 	"go-docx-kit/docx"
-	"os"
 	"testing"
 )
 
@@ -25,22 +24,18 @@ func TestTemplateGeneration(t *testing.T) {
 	dataModel.Put("retainedCount", "900")
 	dataModel.Put("reasonOfNotRetainingSample", " ")
 
-	templateFile, err := docx.ReadDocxFile("../../template.docx")
+	docxTemplate, err := docx.ReadDocxFile("../../template.docx")
 	if err != nil {
 		panic(err)
 	}
-
-	resultFile, err := os.Create("../../result.docx")
-	if err != nil {
-		panic(err)
-	}
-	defer resultFile.Close()
 
 	kit := NewTemplateKit()
-	kit.SetTemplateDocx(templateFile)
+	kit.SetTemplateDocx(docxTemplate)
 	kit.SetTemplateModel(dataModel)
-	_, err = kit.Write(resultFile)
+	err = kit.Render()
 	if err != nil {
 		panic(err)
 	}
+
+
 }
